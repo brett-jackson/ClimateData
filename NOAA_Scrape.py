@@ -11,12 +11,6 @@ class NOAA:
         self.search = 'https://www.ncei.noaa.gov/access/services/search/v1?'
         self.data   = 'https://www.ncei.noaa.gov/access/services/data/v1?'
         self.token = token
-    def appendQuery(self,paramName,param,URL):
-        append = paramName + '=' + param
-        if URL[-1] != '?':
-            URL += '&'
-        URL += append
-        return URL
     def dataRequest(self,params):
         #Example: https://www.ncei.noaa.gov/access/services/data/v1?dataset=global-marine&dataTypes=WIND_DIR,WIND_SPEED&stations=AUCE&startDate=2016-01-01&endDate=2016-01-02&boundingBox=90,-180,-90,180
         params = {key: val for key, val in params.items() if val is not '' and val is not None}

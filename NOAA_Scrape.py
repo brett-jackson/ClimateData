@@ -131,7 +131,7 @@ if __name__ == '__main__':
                     'datatypeid':'',
                     'locationid':'',
                     'stationid':'',
-                    'startdate':'2005-10-03',
+                    'startdate':'2012-07-03',
                     'enddate':'2012-09-10',
                     'units':'',
                     'sortfield':'',

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jan  7 22:18:02 2020
-Class for handling requests to NOAA API v1
+Class for handling requests to NOAA servers
 @author: Brett
 """
 import requests
+import ftplib
+import os
 
 class NOAAv1:
     def __init__(self,token):
@@ -40,107 +42,32 @@ class NOAAv2:
             URL += '/' + ID
         return requests.get(URL,headers={'token':self.token}, params=params)
         
-if __name__ == '__main__':
-    token = ''
-    with open('token.txt') as f:
-        token = f.read()  
-    print("Token: " + token)
-    query = NOAAv2(token)
-    
-    print("\n***\n*** DEFAULT 25 DATASETS\n***")
-    datasetParams = {'datatypeid':'',
-                  'locationid':'',
-                  'stationid':'',
-                  'startdate':'',
-                  'enddate':'',
-                  'sortfield':'',
-                  'sortorder':'',
-                  'limit':'',
-                  'offset':''}
-    response = query.request(datasetParams,'datasets')
-    print(response.text)
-    
-    print("\n***\n*** DEFAULT 25 CATEGORIES\n***")
-    categoriesParams = {'datasetid':'',
-                  'locationid':'',
-                  'stationid':'',
-                  'startdate':'',
-                  'enddate':'',
-                  'sortfield':'',
-                  'sortorder':'',
-                  'limit':'',
-                  'offset':''}
-    response2 = query.request(categoriesParams,'datacategories')
-    print(response2.text)
-    
-    print("\n***\n*** DEFAULT 25 TYPES\n***")
-    typesParams = {'datasetid':'',
-                  'locationid':'',
-                  'stationid':'',
-                  'datacategoryid':'',
-                  'startdate':'',
-                  'enddate':'',
-                  'sortfield':'',
-                  'sortorder':'',
-                  'limit':'',
-                  'offset':''}
-    response3 = query.request(typesParams,'datatypes')
-    print(response3.text)
-    
-    print("\n***\n*** DEFAULT 25 LOCATION CATEGORIES\n***")
-    loccatParams = {'datasetid':'',
-                  'startdate':'',
-                  'enddate':'',
-                  'sortfield':'',
-                  'sortorder':'',
-                  'limit':'',
-                  'offset':''}
-    response4 = query.request(loccatParams,'locationcategories')
-    print(response4.text)
-    
-    print("\n***\n*** DEFAULT 25 LOCATIONS\n***")
-    locParams = {'datasetid':'',
-                    'locationcategoryid':'',
-                    'datacategoryid':'',
-                    'startdate':'',
-                    'enddate':'',
-                    'sortfield':'',
-                    'sortorder':'',
-                    'limit':'',
-                    'offset':''}
-    response5 = query.request(locParams,'locations')
-    print(response5.text)
-    
-    print("\n***\n*** DEFAULT 25 STATIONS\n***")
-    stationParams = {'datasetid':'',
-                    'locationid':'',
-                    'datacategoryid':'',
-                    'datatypeid':'',
-                    'extent':'',
-                    'startdate':'',
-                    'enddate':'',
-                    'sortfield':'',
-                    'sortorder':'',
-                    'limit':'',
-                    'offset':''}
-    response6 = query.request(stationParams,'stations')
-    print(response6.text)
-    
-    print("\n***\n*** DEFAULT 25 DATAPOINT EXAMPLE\n***")
-    dataParams = {'datasetid':'GSOM',
-                    'datatypeid':'',
-                    'locationid':'',
-                    'stationid':'',
-                    'startdate':'2012-07-03',
-                    'enddate':'2012-09-10',
-                    'units':'',
-                    'sortfield':'',
-                    'sortorder':'',
-                    'limit':'',
-                    'offset':'',
-                    'includemetadata':''}
-    response7 = query.request(dataParams,'data')
-    print(response7.text)
-    
+class NOAAftp:
+    def __init__(self):
+        self.base = 'aftp.cmdl.noaa.gov'
+    def downloadCO2(self,savepath):
+        cd =  '/data/greenhouse_gases/co2'
+        ftp = ftplib.FTP(self.base)
+        ftp.login()
+        ftp.cwd(cd)
+        self.saveAllFTP(ftp,savepath)
+        ftp.quit()
+        
+    def saveAllFTP(self,ftp,savepath):
+        if not os.path.exists(savepath):
+            os.mkdir(savepath)
+        files = ftp.nlst()
+        for file in files:
+            saveloc = os.path.join(savepath,file)        
+            if len(ftp.nlst(file))==1 and file in ftp.nlst(file):
+                savefile = open(saveloc,'wb')
+                ftp.retrbinary('RETR '+ file, savefile.write)
+                savefile.close()
+            else:
+                curr = ftp.pwd()
+                ftp.cwd(file)
+                self.saveAllFTP(ftp,saveloc)
+                ftp.cwd(curr)
+        
     
     
